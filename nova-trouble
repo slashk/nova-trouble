@@ -116,11 +116,17 @@ def _instance_types():
 
 def _report():
     """create the body of our report"""
-    version = ("version: %s" % _version())
-    flagfile = ("flagfile: %s" % _flagfile())
-    flags = ("flags:\n%s" % _flags)
-    iptables = ("iptables setup:\n%s" % _iptables())
-    dbversion = ("database version: %s" % _dbversion())
+    try:
+        version = ("version: %s" % _version())
+    except:
+        version = "error gathering nova version"
+    try:
+        flagfile = ("flagfile: %s" % _flagfile())
+    except:
+        flagfile = "enable to parse flagfile"
+    # flags = ("flags:\n%s" % _flags)
+    # iptables = ("iptables setup:\n%s" % _iptables())
+    # dbversion = ("database version: %s" % _dbversion())
     return ("%s\n%s\n%s\n\n%s\n\n%s" %
             (version, dbversion, flagfile, flags, iptables))
 
@@ -138,7 +144,9 @@ def paste():
       url = s.pastes.newPaste(None, _report(), None, '', '', False)
     except:
       print "There seems to have been an error uploading your report"
-      raise
+      print "Printing out report to screen"
+      print "=========START============="
+      screen()
     else:
       print "your configuration has been upload to %s" % url
 
