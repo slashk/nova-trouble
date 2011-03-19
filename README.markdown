@@ -1,17 +1,35 @@
 nova-trouble
 ============
 
+### Overview
+
 nova-trouble helps you troubleshoot your OpenStack nova installation
+
+### License
+
+nova-trouble is offered under the Apache 2.0 license
 
 ### Usage
 
-`$ nova-trouble
-xxxx`
+Print out to screen:
 
+     `$ nova-trouble
 
-`$ nova-trouble paste`
-your configuration has been posted at http://paste.openstack.org/show/666`
+     version: 2011.1.798ssdfdf
 
-### Credits
+     audit: xxxx
 
-Witten by Ken Pepple
+     flagfile: /etc/nova/nova.conf
+
+     flags: xxxx
+
+Send to paste.openstack.org to share:
+
+    `$ nova-trouble paste
+
+    your configuration has been upload to http://paste.openstack.org/show/908/`
+    
+Save your output to a file:
+
+    `$ nova-trouble > /tmp/trouble.tmp`
+
