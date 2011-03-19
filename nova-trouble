@@ -127,6 +127,9 @@ def _report():
     # flags = ("flags:\n%s" % _flags)
     # iptables = ("iptables setup:\n%s" % _iptables())
     # dbversion = ("database version: %s" % _dbversion())
+    flags = "not implemented"
+    iptables = "not implemented"
+    dbversion = "not implemented"
     return ("%s\n%s\n%s\n\n%s\n\n%s" %
             (version, dbversion, flagfile, flags, iptables))
 
