@@ -34,13 +34,19 @@
 from xmlrpclib import ServerProxy
 import sys
 
-from nova import context
-from nova import db
-from nova import flags
-from nova import utils
-from nova.compute import instance_types
-from nova.db import migration
-from nova import version
+try:
+    from nova import context
+    from nova import db
+    from nova import flags
+    from nova import utils
+    from nova.compute import instance_types
+    from nova.db import migration
+    from nova import version
+except:
+    print "nova-trouble requires nova packages installed to work"
+    print "visit http://nova.openstack.org/ for installation instructions"
+    sys.exit(1)
+
 
 FLAGS = flags.FLAGS
 PASTE_URL = "http://paste.openstack.org/xmlrpc/"
@@ -143,9 +149,11 @@ def screen():
 def main():
     """Parse options and call the appropriate class/method."""
     if len(sys.argv) > 1 and sys.argv[1] == "paste":
-      trouble.paste()
+      paste()
+    elif len(sys.argv) > 1:
+      usage()
     else:
-      trouble.screen()
+      screen()
 
 if __name__ == '__main__':
     main()
