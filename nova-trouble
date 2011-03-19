@@ -1,0 +1,151 @@
+#!/usr/bin/env python
+# vim: tabstop=4 shiftwidth=4 softtabstop=4
+
+#   Copyright (c) 2011, Ken Pepple
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+
+
+"""
+  nova trouble with audit, document and upload nova configs
+  usage (audit to screen):
+       $ nova-trouble
+       version: 2011.1.798ssdfdf
+       audit: xxxx
+       flagfile: /etc/nova/nova.conf
+       flags: xxxx
+  usage (send to paste):
+      $ nova-trouble paste
+      your configuration has been upload to http://paste.openstack.org/show/908/
+  usage (send to file):
+      $ nova-trouble > /tmp/trouble.tmp
+"""
+
+from xmlrpclib import ServerProxy
+import sys
+
+from nova import context
+from nova import db
+from nova import flags
+from nova import utils
+from nova.compute import instance_types
+from nova.db import migration
+from nova import version
+
+FLAGS = flags.FLAGS
+PASTE_URL = "http://paste.openstack.org/xmlrpc/"
+
+def _version():
+    """get nova version"""
+    return version.version_string_with_vcs()
+
+def _flags():
+    """evaluate FLAGFILE"""
+    # remember to replace passwords
+    return ""
+
+def _flagfile():
+    """find flagfile location"""
+    return ""
+
+def _iptables():
+    """return iptables setup"""
+    return ""
+
+def _services():
+    """return services config and status"""
+    """Show a list of all running services."""
+    ctxt = context.get_admin_context()
+    now = datetime.datetime.utcnow()
+    services = db.service_get_all(ctxt) + db.service_get_all(ctxt, True)
+    for svc in services:
+        delta = now - (svc['updated_at'] or svc['created_at'])
+        alive = (delta.seconds <= 15)
+        art = (alive and ":-)") or "XXX"
+        active = 'enabled'
+        if svc['disabled']:
+            active = 'disabled'
+        print "%-10s %-10s %-8s %s %s" % (svc['host'], svc['binary'],
+                                          active, art,
+                                          svc['updated_at'])
+
+def _instances():
+    """Show a list of all instances"""
+    print "%-10s %-15s %-10s %-10s %-19s %-12s %-12s %-12s" \
+          "  %-10s %-10s %-10s %-5s" % ('instance', 'node', \
+        'type', 'state', 'launched', 'image', 'kernel', 'ramdisk',
+        'project', 'user', 'zone','index')
+    instances = db.instance_get_all(context.get_admin_context())
+    for i in instances:
+        print "%-10s %-15s %-10s %-10s %-19s %-12s %-12s %-12s" \
+              "  %-10s %-10s %-10s %-5d" % (
+            i['hostname'], i['host'], i['instance_type'],
+            i['state_description'], i['launched_at'], i['image_id'],
+            i['kernel_id'], i['ramdisk_id'], i['project_id'],
+            i['user_id'], i['availability_zone'], i['launch_index'])
+
+def _dbversion():
+    """returns the migration version of the database"""
+    return migration.db_version()
+    
+def _instance_types():
+    """Lists all active or specific instance types / flavors"""
+    inst_types = instance_types.get_all_types(True)
+    for k, v in inst_types.iteritems():
+        print ("%s: Memory: %sMB, VCPUS: %s, Storage: %sGB, FlavorID: %s, "
+            "Swap: %sGB, RXTX Quota: %sGB, RXTX Cap: %sMB%s") % (
+            n, val["memory_mb"], val["vcpus"], val["local_gb"],
+            val["flavorid"], val["swap"], val["rxtx_quota"],
+            val["rxtx_cap"], deleted)
+
+def _report():
+    """create the body of our report"""
+    version = ("version: %s" % _version())
+    flagfile = ("flagfile: %s" % _flagfile())
+    flags = ("flags:\n%s" % _flags)
+    iptables = ("iptables setup:\n%s" % _iptables())
+    dbversion = ("database version: %s" % _dbversion())
+    return ("%s\n%s\n%s\n\n%s\n\n%s" %
+            (version, dbversion, flagfile, flags, iptables))
+
+def usage():
+    """print the usage and quit"""
+    print "$ nova-trouble [help|paste]"
+
+def paste():
+    """
+    post the report to http://paste.openstack.org
+    returns a url to visit/share
+    """
+    s = ServerProxy(PASTE_URL)
+    try:
+      url = s.pastes.newPaste(None, _report(), None, '', '', False)
+    except:
+      print "There seems to have been an error uploading your report"
+      raise
+    else:
+      print "your configuration has been upload to %s" % url
+
+def screen():
+    """prints the report to the screen"""
+    print _report()
+
+def main():
+    """Parse options and call the appropriate class/method."""
+    if len(sys.argv) > 1 and sys.argv[1] == "paste":
+      trouble.paste()
+    else:
+      trouble.screen()
+
+if __name__ == '__main__':
+    main()
